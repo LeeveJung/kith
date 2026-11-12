@@ -23,6 +23,15 @@ class AnimalPhoto extends Model
     public const MAX_PER_ANIMAL = 5;
 
     /**
+     * Storage directory for the photos of a breeder. Separated per tenant by id,
+     * so neither breeder nor animal names appear in paths or URLs.
+     */
+    public static function directoryFor(Breeder $breeder): string
+    {
+        return 'animal-photos/'.$breeder->getKey();
+    }
+
+    /**
      * @return BelongsTo<Animal, $this>
      */
     public function animal(): BelongsTo

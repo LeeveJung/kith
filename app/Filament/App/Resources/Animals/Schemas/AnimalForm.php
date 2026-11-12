@@ -202,7 +202,7 @@ class AnimalForm
                     ->image()
                     ->acceptedFileTypes(WebpImage::ACCEPTED_MIME_TYPES)
                     ->disk('public')
-                    ->directory('animal-photos')
+                    ->directory(fn (): string => AnimalPhoto::directoryFor(Filament::getTenant()))
                     ->saveUploadedFileUsing(function (FileUpload $component, TemporaryUploadedFile $file): string {
                         $path = WebpImage::store($file->get(), $component->getDiskName(), $component->getDirectory());
                         $file->delete();

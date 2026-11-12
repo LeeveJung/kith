@@ -96,7 +96,9 @@ it('stores uploaded photos as webp scaled down to at most 1000px width', functio
     $path = Animal::firstWhere('name', 'Luna')->photos->sole()->path;
     $size = getimagesizefromstring(Storage::disk('public')->get($path));
 
-    expect($path)->toEndWith('.webp')
+    expect($path)->toStartWith("animal-photos/{$this->breeder->id}/")
+        ->toEndWith('.webp')
+        ->not->toContain('luna')
         ->and($size['mime'])->toBe('image/webp')
         ->and($size[0])->toBe($expectedWidth)
         ->and($size[1])->toBe($expectedWidth / 2);

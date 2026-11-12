@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 /**
  * Demo data from the "Katzen-Stammbaum" design export (breeder "Nordwald Coons").
  * Requires SpeciesSeeder and ColorSeeder. Photos are imported from data/uploads if present
- * and stored as WebP, like uploads in the backend.
+ * and stored as WebP under anonymous names, like uploads in the backend.
  */
 class DemoBreederSeeder extends Seeder
 {
@@ -183,10 +183,14 @@ class DemoBreederSeeder extends Seeder
                 continue;
             }
 
-            $path = "animal-photos/{$this->breeder->slug}/{$key}-{$position}.webp";
-            Storage::disk('public')->put($path, WebpImage::encode(File::get($source)), 'public');
+            $photo = AnimalPhoto::firstOrNew(['animal_id' => $animal->id, 'position' => $position]);
 
-            AnimalPhoto::updateOrCreate(['animal_id' => $animal->id, 'position' => $position], ['path' => $path]);
+            if ($photo->path !== null) {
+                Storage::disk('public')->delete($photo->path);
+            }
+
+            $photo->path = WebpImage::store(File::get($source), 'public', AnimalPhoto::directoryFor($this->breeder));
+            $photo->save();
         }
     }
 
