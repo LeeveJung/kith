@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+
+    /* Brand: kith green (#173b2b) with the lighter leaf tones of the logo */
+    --color-kith-50: #f4f7f4;
+    --color-kith-100: #e6eee8;
+    --color-kith-200: #cddccf;
+    --color-kith-300: #a9c2ae;
+    --color-kith-400: #7f9f87;
+    --color-kith-500: #5e8269;
+    --color-kith-600: #3f6650;
+    --color-kith-700: #2b5040;
+    --color-kith-800: #1f4433;
+    --color-kith-900: #173b2b;
+    --color-kith-950: #0d2419;
+
+    /* Warm paper background and ink from the pedigree design */
+    --color-paper: #f7f5f0;
+    --color-paper-deep: #ece7dd;
+    --color-ink: #1f1d1a;
+    --color-ink-soft: #5e584f;
+    --color-tan: #c9a47e;
+}
