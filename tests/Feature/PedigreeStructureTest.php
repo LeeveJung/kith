@@ -162,13 +162,13 @@ it('assigns users to breeders', function () {
     expect($breeder->users->first()->is($user))->toBeTrue();
 });
 
-it('seeds the design export for Nordwald Coons', function () {
+it('seeds the design export for Maine Coon Kittens', function () {
     Storage::fake('public');
     User::factory()->create(['email' => 'test@example.com']);
 
     $this->seed([SpeciesSeeder::class, ColorSeeder::class, DemoBreederSeeder::class]);
 
-    $breeder = Breeder::firstWhere('slug', 'nordwald-coons');
+    $breeder = Breeder::firstWhere('slug', 'maine-coon-kittens');
 
     expect(Color::count())->toBe(18)
         ->and($breeder->litters)->toHaveCount(11)

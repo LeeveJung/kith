@@ -43,6 +43,20 @@ class Breeder extends Model
     }
 
     /**
+     * Species in which this breeder has at least one litter, by name.
+     *
+     * @return array<int, string> species id => name
+     */
+    public function speciesWithLitters(): array
+    {
+        return Species::query()
+            ->whereIn('id', $this->litters()->select('species_id'))
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    /**
      * Custom breeds created by this breeder (global breeds are not included).
      *
      * @return HasMany<Breed, $this>

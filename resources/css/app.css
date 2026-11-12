@@ -28,3 +28,281 @@
     --color-ink-soft: #5e584f;
     --color-tan: #c9a47e;
 }
+
+/* ---------- Public pedigree timeline ---------- */
+
+@layer components {
+    .pedigree-chip {
+        @apply rounded-full border border-paper-deep bg-white px-3 py-1.5 text-sm text-ink-soft transition hover:border-kith-200 hover:text-kith-900;
+    }
+
+    .pedigree-chip[aria-pressed='true'] {
+        @apply border-kith-900 bg-kith-900 text-white;
+    }
+
+    .pedigree-icon-btn {
+        @apply flex h-8 min-w-8 items-center justify-center rounded-full border border-paper-deep bg-white text-lg leading-none text-ink transition hover:border-kith-200 hover:text-kith-900;
+    }
+
+    .pedigree-range {
+        @apply h-1.5 cursor-pointer;
+        accent-color: var(--color-kith-900);
+    }
+
+    .pd-result {
+        @apply flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2;
+    }
+
+    .pd-result[aria-selected='true'],
+    .pd-result:hover {
+        @apply bg-kith-50;
+    }
+
+    .pd-sticky-name {
+        @apply pointer-events-auto absolute top-0 left-0 flex items-center gap-1.5 rounded-full border border-paper-deep bg-white/90 py-1 pr-3 pl-1.5 font-serif text-base leading-none text-kith-900 shadow-sm backdrop-blur transition-opacity;
+    }
+
+    .pd-sticky-name > span {
+        @apply size-4 rounded-full ring-1 ring-black/10;
+    }
+
+    .pd-sticky-name.is-hidden {
+        @apply pointer-events-none opacity-0;
+    }
+}
+
+[data-panel].is-open {
+    translate: 0 0;
+}
+
+.pd-axis {
+    position: absolute;
+    pointer-events: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-ink-soft);
+}
+
+.pd-axis.is-horizontal {
+    inset: 0 0 auto 0;
+    height: 1.75rem;
+    background: linear-gradient(var(--color-paper), color-mix(in srgb, var(--color-paper) 0%, transparent));
+}
+
+.pd-axis.is-vertical {
+    inset: 0 auto 0 0;
+    width: 2.75rem;
+    background: linear-gradient(90deg, var(--color-paper), color-mix(in srgb, var(--color-paper) 0%, transparent));
+}
+
+.pd-axis > span {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.4rem;
+    padding-left: 0.35rem;
+}
+
+.pd-axis.is-vertical > span {
+    top: 0.2rem;
+    left: 0.45rem;
+    padding: 0;
+}
+
+[data-canvas] {
+    cursor: grab;
+}
+
+[data-canvas].cursor-grabbing {
+    cursor: grabbing;
+}
+
+[data-canvas] text {
+    font-family: var(--font-sans);
+    dominant-baseline: central;
+}
+
+.pd-halo {
+    paint-order: stroke;
+    stroke: var(--color-paper);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+}
+
+.pd-band {
+    fill: #fff;
+    opacity: 0.45;
+}
+
+.pd-grid {
+    stroke: var(--color-paper-deep);
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+}
+
+.pd-lane {
+    stroke: var(--color-kith-200);
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.pd-connector {
+    fill: none;
+    stroke: var(--color-kith-300);
+    stroke-width: 2;
+}
+
+.pd-stem {
+    stroke: var(--color-paper-deep);
+    stroke-width: 2;
+}
+
+.pd-node {
+    fill: var(--color-kith-900);
+    stroke: var(--color-paper);
+    stroke-width: 3;
+}
+
+.pd-node.is-estimated {
+    fill: var(--color-paper);
+    stroke: var(--color-kith-700);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 2.5;
+}
+
+.pd-node-letter {
+    fill: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+.pd-node.is-estimated + .pd-node-letter {
+    fill: var(--color-kith-900);
+}
+
+.pd-meta {
+    fill: var(--color-ink-soft);
+    font-size: 12.5px;
+}
+
+.pd-sire {
+    fill: var(--color-ink);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+}
+
+.pd-sire:hover,
+.pd-sire:focus-visible {
+    fill: var(--color-kith-700);
+    text-decoration: underline;
+}
+
+.pd-hit {
+    fill: transparent;
+}
+
+.pd-kitten,
+.pd-avatar {
+    cursor: pointer;
+    outline: none;
+}
+
+.pd-kitten circle {
+    stroke: rgb(0 0 0 / 0.18);
+    stroke-width: 1;
+}
+
+.pd-kitten.is-breeding circle {
+    stroke: var(--color-kith-900);
+    stroke-width: 2.5;
+}
+
+.pd-kitten text {
+    fill: var(--color-ink);
+    font-size: 15px;
+}
+
+.pd-kitten.is-breeding text {
+    font-weight: 600;
+    fill: var(--color-kith-900);
+}
+
+.pd-kitten:hover text,
+.pd-kitten:focus-visible text,
+.pd-kitten.is-focus text {
+    fill: var(--color-kith-700);
+    text-decoration: underline;
+}
+
+.pd-kitten:focus-visible circle,
+.pd-kitten.is-focus circle {
+    stroke: var(--color-tan);
+    stroke-width: 3;
+}
+
+.pd-avatar-ring {
+    fill: none;
+    stroke: var(--color-kith-900);
+    stroke-width: 2.5;
+}
+
+.pd-avatar:hover .pd-avatar-ring,
+.pd-avatar:focus-visible .pd-avatar-ring,
+.pd-avatar.is-focus .pd-avatar-ring {
+    stroke: var(--color-tan);
+    stroke-width: 4;
+}
+
+.pd-avatar-name {
+    fill: var(--color-kith-900);
+    font-family: var(--font-serif) !important;
+    font-size: 25px;
+}
+
+.pd-dim {
+    transition: opacity 0.25s;
+}
+
+.is-focusing .pd-dim:not(.is-lit) {
+    opacity: 0.13;
+}
+
+.is-focusing .pd-lane.is-lit,
+.is-focusing .pd-connector.is-lit {
+    stroke: var(--color-tan);
+}
+
+.pd-dim.is-filtered {
+    opacity: 0.12;
+}
+
+[data-ms].is-future {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.pd-litter,
+.pd-avatar,
+.pd-connector {
+    transition: opacity 0.35s;
+}
+
+.lod-far .pd-kitten text,
+.lod-far .pd-meta,
+.lod-far .pd-sire {
+    display: none;
+}
+
+.pd-today {
+    stroke: var(--color-tan);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+}
+
+.pd-axis > span.is-today {
+    color: var(--color-tan);
+    font-weight: 600;
+}

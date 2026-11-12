@@ -2,7 +2,6 @@
 
 namespace App\Filament\App\Pages;
 
-use App\Models\Species;
 use App\Support\PedigreeGraph;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -71,11 +70,7 @@ class Pedigree extends Page
     #[Computed]
     public function speciesOptions(): array
     {
-        return Species::query()
-            ->whereIn('id', Filament::getTenant()->litters()->select('species_id'))
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->all();
+        return Filament::getTenant()->speciesWithLitters();
     }
 
     #[Computed]

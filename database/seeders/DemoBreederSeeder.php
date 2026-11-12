@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Demo data from the "Katzen-Stammbaum" design export (breeder "Nordwald Coons").
+ * Demo data from the "Katzen-Stammbaum" design export (demo breeder "Maine Coon Kittens").
  * Requires SpeciesSeeder and ColorSeeder. Photos are imported from data/uploads if present
  * and stored as WebP under anonymous names, like uploads in the backend.
  */
@@ -101,7 +101,7 @@ class DemoBreederSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->breeder = Breeder::updateOrCreate(['slug' => 'nordwald-coons'], ['name' => 'Nordwald Coons']);
+        $this->breeder = Breeder::updateOrCreate(['slug' => 'maine-coon-kittens'], ['name' => 'Maine Coon Kittens']);
         $this->species = Species::firstWhere('slug', 'cat');
 
         User::firstWhere('email', 'test@example.com')?->breeders()->syncWithoutDetaching($this->breeder);

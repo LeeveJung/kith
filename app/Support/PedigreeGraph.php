@@ -55,7 +55,7 @@ final class PedigreeGraph
     {
         $animals = $breeder->animals()
             ->when($speciesId, fn ($query) => $query->where('species_id', $speciesId))
-            ->with(['color', 'photos'])
+            ->with(['breed', 'color', 'photos'])
             ->get();
 
         $litters = $breeder->litters()
@@ -63,6 +63,14 @@ final class PedigreeGraph
             ->get();
 
         return new self($animals, $litters);
+    }
+
+    /**
+     * @return Collection<int, Animal> keyed by id
+     */
+    public function animals(): Collection
+    {
+        return $this->animals;
     }
 
     public function animal(int $id): ?Animal
