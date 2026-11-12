@@ -98,7 +98,6 @@
     "Photos": "Fotos",
     "Platform": "Plattform",
     "Precision": "Genauigkeit",
-    "Queen · from litter :letter": "Zuchtkätzin · aus Wurf :letter",
     "Reference data": "Stammdaten",
     "Register breeder": "Zuchtbetrieb anlegen",
     "Role": "Rolle",
@@ -117,9 +116,17 @@
     "Year": "Jahr",
     "born :date": "geb. :date",
     "called “:name”": "genannt „:name“",
-    ":count offspring": ":count Nachkommen",
     "with :name": "mit :name",
     "Stored as WebP, at most :width px wide.": "Wird als WebP gespeichert, höchstens :width px breit.",
     "Edit": "Bearbeiten",
-    ":count litters": ":count Würfe"
+    "Preview in frontend": "Vorschau im Frontend",
+    "The public pedigree of this breeder is coming soon.": "Der öffentliche Stammbaum dieses Züchters folgt in Kürze.",
+    "Own breeding · litter :letter": "Eigene Zucht · Wurf :letter",
+    "Breeding animal – click to jump to its litters": "Zuchttier – Klick springt zu seinen Würfen",
+    "Other offspring": "Weitere Nachkommen",
+    "No offspring recorded": "Keine Nachkommen erfasst",
+    "Sire": "Vater",
+    "No dated litter yet": "Noch kein Wurf mit Datum",
+    "Latest: :litter · :date": "Zuletzt: :litter · :date",
+    "Breeding animals: :dams · :sires": "Zuchttiere: :dams · :sires"
 }

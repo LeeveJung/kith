@@ -182,7 +182,31 @@ final class PedigreeGraph
     }
 
     /**
-     * One lane per breeding mother, ordered by her first litter.
+     * Whether the animal is mother or father of at least one litter.
+     */
+    public function isBreedingAnimal(Animal $animal): bool
+    {
+        return $this->litters->contains(
+            fn (Litter $litter): bool => $litter->mother_id === $animal->id || $litter->father_id === $animal->id,
+        );
+    }
+
+    /**
+     * Short origin description, e.g. "Own breeding · litter A" or "External animal".
+     */
+    public function describeOrigin(Animal $animal): string
+    {
+        $litter = $animal->litter_id !== null ? $this->litters->get($animal->litter_id) : null;
+
+        if ($litter === null) {
+            return $animal->origin->getLabel();
+        }
+
+        return __('Own breeding · litter :letter', ['letter' => $litter->letter ?? '#'.$litter->id]);
+    }
+
+    /**
+     * One lane per breeding mother, most litters first; ties keep the order of the first litter.
      *
      * @return list<array{queen: Animal, litters: Collection<int, Litter>}>
      */
@@ -197,6 +221,8 @@ final class PedigreeGraph
                 $lanes[] = ['queen' => $queen, 'litters' => $litters];
             }
         }
+
+        usort($lanes, fn (array $a, array $b): int => $b['litters']->count() <=> $a['litters']->count());
 
         return $lanes;
     }

@@ -15,12 +15,12 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /**
@@ -45,6 +45,7 @@ class AppPanelProvider extends PanelProvider
             ->favicon(asset('images/kith-logo.webp'))
             ->maxContentWidth('fi-width-8xl')
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => '<style>.fi-main.fi-width-8xl{max-width:88rem}</style>')
+            ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Vite::isRunningHot() ? Vite::__invoke([])->toHtml() : '')
             ->colors([
                 'primary' => Color::hex('#173b2b'),
             ])
@@ -54,9 +55,6 @@ class AppPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

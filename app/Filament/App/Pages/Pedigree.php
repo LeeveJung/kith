@@ -5,6 +5,7 @@ namespace App\Filament\App\Pages;
 use App\Models\Species;
 use App\Support\PedigreeGraph;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -40,6 +41,21 @@ class Pedigree extends Page
     public function getTitle(): string|Htmlable
     {
         return __('Pedigree');
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('preview')
+                ->label(__('Preview in frontend'))
+                ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                ->color('gray')
+                ->url(fn (): string => route('breeders.show', Filament::getTenant()))
+                ->openUrlInNewTab(),
+        ];
     }
 
     public function mount(): void

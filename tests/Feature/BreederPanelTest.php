@@ -2,6 +2,7 @@
 
 use App\Enums\AnimalOrigin;
 use App\Enums\Sex;
+use App\Filament\App\Pages\Pedigree;
 use App\Filament\App\Resources\Animals\Pages\CreateAnimal;
 use App\Filament\App\Resources\Animals\Pages\ListAnimals;
 use App\Filament\App\Resources\Breeds\Pages\ManageBreeds;
@@ -10,6 +11,7 @@ use App\Filament\App\Resources\Litters\Pages\CreateLitter;
 use App\Filament\App\Resources\Litters\Pages\EditLitter;
 use App\Filament\App\Resources\Litters\Pages\ListLitters;
 use App\Filament\App\Resources\Litters\RelationManagers\OffspringRelationManager;
+use App\Filament\App\Widgets\BreedingOverview;
 use App\Models\Animal;
 use App\Models\Breed;
 use App\Models\Breeder;
@@ -321,6 +323,30 @@ it('forbids access to a breeder the user does not belong to', function () {
     $this->get("/app/{$foreign->slug}/animals")->assertNotFound();
 });
 
+it('does not let members of a breeder register another breeder', function () {
+    $this->get('/app/new')->assertNotFound();
+
+    $this->get("/app/{$this->breeder->slug}/animals")->assertDontSee('/app/new', false);
+});
+
+it('lets users without a breeder register one', function () {
+    $this->actingAs(User::factory()->create())
+        ->get('/app/new')
+        ->assertSuccessful();
+});
+
+it('links the pedigree page to the public page of the breeder', function () {
+    Livewire::test(Pedigree::class)
+        ->assertActionHasUrl('preview', route('breeders.show', $this->breeder))
+        ->assertActionShouldOpenUrlInNewTab('preview');
+
+    $this->get(route('breeders.show', $this->breeder))
+        ->assertSuccessful()
+        ->assertSee($this->breeder->name);
+
+    $this->get('/breeders/unknown-breeder')->assertNotFound();
+});
+
 it('lets the user reach their own breeder panel over http', function () {
     $this->get("/app/{$this->breeder->slug}/animals")->assertSuccessful();
 });
@@ -335,4 +361,21 @@ it('renders the edit pages of animals and litters including the offspring manage
 
     $this->get("/app/{$this->breeder->slug}/litters/{$litter->id}/edit")->assertSuccessful()->assertSee('Offspring');
     $this->get("/app/{$this->breeder->slug}/animals/{$kitten->id}/edit")->assertSuccessful();
+});
+
+it('summarizes animals, litters and pedigree of the own breeder on the dashboard', function () {
+    $litterA = Litter::factory()->create(['breeder_id' => $this->breeder->id, 'species_id' => $this->species->id, 'letter' => 'A']);
+    Litter::factory()->create(['breeder_id' => $this->breeder->id, 'species_id' => $this->species->id, 'letter' => 'B', 'born_on' => '2025-06-01']);
+    Animal::factory()->female()->inLitter($litterA)->count(2)->create();
+    Animal::withoutEvents(fn () => Litter::withoutEvents(fn () => Litter::factory()->create(['species_id' => $this->species->id, 'born_on' => '2026-01-01'])));
+
+    Livewire::test(BreedingOverview::class)
+        ->assertSee('♀ 4 · ♂ 2')
+        ->assertSee('Latest: Litter B')
+        ->assertSee('Breeding animals: ♀ 2 · ♂ 2')
+        ->assertSee(Pedigree::getUrl());
+});
+
+it('shows a hint on the dashboard when no litter has a birth date', function () {
+    Livewire::test(BreedingOverview::class)->assertSee('No dated litter yet');
 });

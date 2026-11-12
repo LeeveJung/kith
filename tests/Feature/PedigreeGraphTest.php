@@ -105,6 +105,29 @@ it('groups litters into one lane per mother', function () {
         ->and($lanes[1]['queen']->is($this->daughter))->toBeTrue();
 });
 
+it('recognizes animals that are parents of a litter as breeding animals', function () {
+    expect($this->graph->isBreedingAnimal($this->daughter))->toBeTrue()
+        ->and($this->graph->isBreedingAnimal($this->son))->toBeTrue()
+        ->and($this->graph->isBreedingAnimal($this->half))->toBeFalse();
+});
+
+it('describes the origin of bred and unbred animals', function () {
+    expect($this->graph->describeOrigin($this->daughter))->toBe('Own breeding · litter A')
+        ->and($this->graph->describeOrigin($this->dam))->toBe($this->dam->origin->getLabel());
+});
+
+it('orders lanes by number of litters', function () {
+    Litter::factory()->count(2)->create([
+        'breeder_id' => $this->breeder->id, 'species_id' => $this->species->id,
+        'mother_id' => $this->daughter->id, 'father_id' => $this->other->id, 'born_on' => '2025-01-01',
+    ]);
+
+    $lanes = PedigreeGraph::forBreeder($this->breeder, $this->species->id)->lanes();
+
+    expect($lanes[0]['queen']->is($this->daughter))->toBeTrue()
+        ->and($lanes[1]['queen']->is($this->dam))->toBeTrue();
+});
+
 it('counts litters and offspring per sire', function () {
     $sires = collect($this->graph->sires())->keyBy(fn (array $sire) => $sire['animal']->name);
 
@@ -134,6 +157,7 @@ it('renders the pedigree page for a breeder member with links to the edit pages'
         ->assertSee('Dam')
         ->assertSee('Grandchild')
         ->assertSee('Common ancestors')
+        ->assertSee('href="#animal-'.$this->daughter->id.'"', false)
         ->assertSee(AnimalResource::getUrl('edit', ['record' => $this->grandchild]))
         ->assertSee(LitterResource::getUrl('edit', ['record' => $this->l2]));
 });
