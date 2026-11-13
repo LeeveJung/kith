@@ -87,6 +87,13 @@ it('shows the pedigree of the breeder on the public page', function () {
         ->assertDontSee('Private note');
 });
 
+it('links the imprint and privacy policy in the footer of the public page', function () {
+    $this->get('/breeders/nordwald')
+        ->assertSuccessful()
+        ->assertSee(route('imprint'), false)
+        ->assertSee(route('privacy'), false);
+});
+
 it('does not show animals of other breeders', function () {
     Animal::factory()->create(['species_id' => $this->species->id, 'name' => 'Foreign Cat']);
 

@@ -29,6 +29,67 @@
     --color-tan: #c9a47e;
 }
 
+/* ---------- Imprint and privacy policy ---------- */
+
+@layer components {
+    .legal-text {
+        @apply leading-relaxed text-ink-soft;
+    }
+
+    .legal-text h2 {
+        @apply mt-12 font-serif text-3xl leading-tight text-kith-950 first:mt-0;
+    }
+
+    .legal-text h3 {
+        @apply mt-6 font-semibold text-kith-950;
+    }
+
+    .legal-text p,
+    .legal-text address,
+    .legal-text ul {
+        @apply mt-3;
+    }
+
+    .legal-text ul {
+        @apply list-disc pl-5;
+    }
+
+    .legal-text a {
+        @apply text-kith-700 underline decoration-kith-200 underline-offset-2 transition hover:text-kith-900 hover:decoration-kith-400;
+    }
+}
+
+/* ---------- Cookie consent (Klaro) ---------- */
+
+/* A small card in the bottom right corner instead of Klaro's full-width bar, on phones as well. */
+#klaro .cookie-notice:not(.cookie-modal-notice) {
+    position: fixed;
+    inset: auto 1rem 1rem auto;
+    width: calc(100% - 2rem);
+    max-width: 23rem;
+    border: 1px solid var(--color-paper-deep);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 24px 48px -24px rgb(23 59 43 / 0.35);
+    outline: none;
+}
+
+#klaro .cookie-notice:not(.cookie-modal-notice) .cn-body {
+    padding: 1rem 1.125rem;
+}
+
+#klaro .cookie-notice:not(.cookie-modal-notice) .cn-body p {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-ink-soft);
+}
+
+#klaro .cookie-notice:not(.cookie-modal-notice) .cn-ok {
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
 /* ---------- Public pedigree timeline ---------- */
 
 @layer components {
@@ -116,7 +177,8 @@
     cursor: grabbing;
 }
 
-[data-canvas] text {
+[data-canvas] text,
+.pd-illustration text {
     font-family: var(--font-sans);
     dominant-baseline: central;
 }

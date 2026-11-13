@@ -39,7 +39,8 @@
         <link rel="icon" type="image/webp" href="{{ asset('images/kith-logo.webp') }}">
 
         @fonts
-        @vite(['resources/css/app.css', 'resources/js/pedigree/index.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/pedigree/index.js'])
+        <x-matomo />
     </head>
     <body class="flex min-h-dvh flex-col bg-paper font-sans text-ink antialiased">
         <header class="border-b border-paper-deep bg-paper">
@@ -165,10 +166,12 @@
                         <img src="{{ asset('images/kith-logo-text.webp') }}" alt="kith" class="h-3.5 w-auto">
                     </a>
                     <span aria-hidden="true">–</span>
-                    <a href="https://ko-fi.com/lebenmitcmt" target="_blank" rel="noopener" class="underline decoration-paper-deep underline-offset-2 transition hover:text-kith-900 hover:decoration-kith-300">
+                    <a href="{{ config('kith.donation_url') }}" target="_blank" rel="noopener" class="underline decoration-paper-deep underline-offset-2 transition hover:text-kith-900 hover:decoration-kith-300">
                         {{ __('If you like this app, consider buying me a coffee') }}
                     </a>
                 </p>
+
+                <x-legal-links class="sm:ml-auto" />
 
                 <div class="flex items-center gap-1 font-medium">
                     @foreach (config('app.available_locales') as $code => $language)
