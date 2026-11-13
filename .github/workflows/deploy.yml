@@ -1,0 +1,172 @@
+name: Test & Deploy
+
+# Runs the test suite on every push to main and, when it passes, deploys to the
+# web server over SSH. Composer packages and frontend assets are built here, so
+# the server only needs PHP (CLI and web) — no Composer, no Node.
+#
+# Layout on the server (DEPLOY_PATH):
+#   releases/<id>/   one directory per deployment, the last five are kept
+#   shared/.env      configuration, created once by hand
+#   shared/storage/  uploads, logs, sessions — survives deployments
+#   shared/database/ SQLite database file
+#   current          symlink to the active release; document root = current/public
+#
+# Repository secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, DEPLOY_PATH, optional SSH_KNOWN_HOSTS
+# Repository variables (optional): SSH_PORT (22), PHP_VERSION (8.5), PHP_BIN (php)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  PHP_VERSION: ${{ vars.PHP_VERSION || '8.5' }}
+  PHP_EXTENSIONS: mbstring, intl, pdo_sqlite, sqlite3, pdo_mysql, gd, zip, bcmath, exif, fileinfo
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests
+        run: php artisan test
+
+  deploy:
+    name: Deploy
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+        with:
+          composer-options: --no-dev --optimize-autoloader
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package release
+        run: |
+          echo "RELEASE=$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          tar --exclude=./.git --exclude=./.github --exclude=./node_modules --exclude=./tests \
+              --exclude=./storage --exclude=./.env --exclude=./public/hot --exclude=./public/storage \
+              --exclude=./database/database.sqlite \
+              -czf "$RUNNER_TEMP/release.tar.gz" .
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            echo "::warning::SSH_KNOWN_HOSTS is not set, trusting the host key reported by the server."
+            ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts
+          fi
+          cat > ~/.ssh/config <<EOF
+          Host deploy-target
+            HostName $SSH_HOST
+            Port $SSH_PORT
+            User ${{ secrets.SSH_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+          EOF
+
+      - name: Upload release
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh deploy-target "mkdir -p '$DEPLOY_PATH/releases/$RELEASE' && tar -xzf - -C '$DEPLOY_PATH/releases/$RELEASE'" \
+            < "$RUNNER_TEMP/release.tar.gz"
+
+      - name: Activate release
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          PHP_BIN: ${{ vars.PHP_BIN || 'php' }}
+        run: |
+          ssh deploy-target "DEPLOY_PATH='$DEPLOY_PATH' RELEASE='$RELEASE' PHP_BIN='$PHP_BIN' bash -s" <<'SCRIPT'
+          set -euo pipefail
+
+          SHARED="$DEPLOY_PATH/shared"
+          NEW="$DEPLOY_PATH/releases/$RELEASE"
+
+          mkdir -p "$SHARED/storage/app/public" "$SHARED/storage/app/private" \
+                   "$SHARED/storage/framework/cache/data" "$SHARED/storage/framework/sessions" \
+                   "$SHARED/storage/framework/views" "$SHARED/storage/logs" "$SHARED/database"
+
+          if [ ! -f "$SHARED/.env" ]; then
+            echo "Missing $SHARED/.env — create it once before the first deployment."
+            rm -rf "$NEW"
+            exit 1
+          fi
+
+          ln -sfn "$SHARED/.env" "$NEW/.env"
+          rm -rf "$NEW/storage"
+          ln -sfn "$SHARED/storage" "$NEW/storage"
+          touch "$SHARED/database/database.sqlite"
+
+          cd "$NEW"
+          "$PHP_BIN" -v | head -n 1
+          "$PHP_BIN" artisan migrate --force
+          "$PHP_BIN" artisan db:seed --class=SpeciesSeeder --force
+          "$PHP_BIN" artisan db:seed --class=ColorSeeder --force
+          "$PHP_BIN" artisan storage:link --force
+          "$PHP_BIN" artisan optimize
+          "$PHP_BIN" artisan filament:optimize
+
+          ln -sfn "$NEW" "$DEPLOY_PATH/current.next"
+          mv -Tf "$DEPLOY_PATH/current.next" "$DEPLOY_PATH/current"
+          echo "Activated release $RELEASE"
+
+          ls -1dt "$DEPLOY_PATH"/releases/*/ | tail -n +6 | xargs -r rm -rf
+          SCRIPT
